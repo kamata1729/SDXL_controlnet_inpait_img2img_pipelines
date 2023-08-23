@@ -54,3 +54,4 @@ images[0].save(f"dogstatue.png")
 
 
 ## StableDiffusionXLControlNetImg2ImgPipeline
+**SDXL + Img2Img + ControlNet pipeline**
