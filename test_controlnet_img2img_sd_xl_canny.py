@@ -33,7 +33,7 @@ pipe = StableDiffusionXLControlNetImg2ImgPipeline.from_pretrained(
     vae=vae,
     torch_dtype=torch.float16,
 ).to("cuda")
-pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
+#pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
 pipe.enable_model_cpu_offload()
 
 # generate image
@@ -46,4 +46,4 @@ image = pipe(
     control_image=canny_image,
 ).images[0]
 
-image.save('output.png')
+image.save('futuristic-looking-woman.png')
