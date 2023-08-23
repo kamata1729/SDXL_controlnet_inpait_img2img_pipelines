@@ -65,7 +65,6 @@ depth_image = get_depth_map(init_image)
 images = pipe(
     prompt, image=init_image, control_image=depth_image, mask_image=mask_image, num_inference_steps=30, controlnet_conditioning_scale=controlnet_conditioning_scale,
 ).images
-images[0]
 
 images[0].save(f"dogstatue.png")
 

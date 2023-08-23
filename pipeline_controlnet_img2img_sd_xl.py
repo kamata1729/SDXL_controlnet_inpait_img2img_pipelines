@@ -1,17 +1,3 @@
-# Copyright 2023 The HuggingFace Team. All rights reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 import inspect
 import os
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
@@ -1019,6 +1005,8 @@ class StableDiffusionXLControlNetImg2ImgPipeline(DiffusionPipeline, FromSingleFi
             [`~pipelines.stable_diffusion.StableDiffusionXLPipelineOutput`] if `return_dict` is True, otherwise a
             `tuple. When returning a tuple, the first element is a list with the generated images.
         """
+
+        controlnet = self.controlnet._orig_mod if is_compiled_module(self.controlnet) else self.controlnet
         
         # 0. Default height and width to unet
         height = height or self.unet.config.sample_size * self.vae_scale_factor
@@ -1093,6 +1081,38 @@ class StableDiffusionXLControlNetImg2ImgPipeline(DiffusionPipeline, FromSingleFi
         # 4. Preprocess image
         image = self.image_processor.preprocess(image)
 
+        # 5. Prepare timesteps
+        def denoising_value_valid(dnv):
+            return type(denoising_end) == float and 0 < dnv < 1
+
+        self.scheduler.set_timesteps(num_inference_steps, device=device)
+        timesteps, num_inference_steps = self.get_timesteps(
+            num_inference_steps, strength, device, denoising_start=denoising_start if denoising_value_valid else None
+        )
+        latent_timestep = timesteps[:1].repeat(batch_size * num_images_per_prompt)
+
+        add_noise = True if denoising_start is None else False
+        # 6. Prepare latent variables
+        latents = self.prepare_latents(
+            image,
+            latent_timestep,
+            batch_size,
+            num_images_per_prompt,
+            prompt_embeds.dtype,
+            device,
+            generator,
+            add_noise,
+        )
+        # 7. Prepare extra step kwargs.
+        extra_step_kwargs = self.prepare_extra_step_kwargs(generator, eta)
+
+        height, width = latents.shape[-2:]
+        height = height * self.vae_scale_factor
+        width = width * self.vae_scale_factor
+
+        original_size = original_size or (height, width)
+        target_size = target_size or (height, width)
+
         if isinstance(controlnet, ControlNetModel):
             control_image = self.prepare_image(
                 image=control_image,
@@ -1125,41 +1145,8 @@ class StableDiffusionXLControlNetImg2ImgPipeline(DiffusionPipeline, FromSingleFi
                 control_images.append(control_image_)
 
             control_image = control_images
-            height, width = control_image[0].shape[-2:]
         else:
             assert False
-
-        # 5. Prepare timesteps
-        def denoising_value_valid(dnv):
-            return type(denoising_end) == float and 0 < dnv < 1
-
-        self.scheduler.set_timesteps(num_inference_steps, device=device)
-        timesteps, num_inference_steps = self.get_timesteps(
-            num_inference_steps, strength, device, denoising_start=denoising_start if denoising_value_valid else None
-        )
-        latent_timestep = timesteps[:1].repeat(batch_size * num_images_per_prompt)
-
-        add_noise = True if denoising_start is None else False
-        # 6. Prepare latent variables
-        latents = self.prepare_latents(
-            image,
-            latent_timestep,
-            batch_size,
-            num_images_per_prompt,
-            prompt_embeds.dtype,
-            device,
-            generator,
-            add_noise,
-        )
-        # 7. Prepare extra step kwargs.
-        extra_step_kwargs = self.prepare_extra_step_kwargs(generator, eta)
-
-        height, width = latents.shape[-2:]
-        height = height * self.vae_scale_factor
-        width = width * self.vae_scale_factor
-
-        original_size = original_size or (height, width)
-        target_size = target_size or (height, width)
 
         # 7.1 Create tensor stating which controlnets to keep
         controlnet_keep = []
@@ -1394,4 +1381,3 @@ class StableDiffusionXLControlNetImg2ImgPipeline(DiffusionPipeline, FromSingleFi
     def _remove_text_encoder_monkey_patch(self):
         self._remove_text_encoder_monkey_patch_classmethod(self.text_encoder)
         self._remove_text_encoder_monkey_patch_classmethod(self.text_encoder_2)
-
