@@ -7,7 +7,7 @@ This repository provides the implementation of `StableDiffusionXLControlNetInpai
 
 `StableDiffusionXLControlNetInpaintPipeline` is quite simple!
 Sample codes are below:
-```
+```shell
 # for depth conditioned controlnet
 python test_controlnet_inpaint_sd_xl_depth.py
 # for canny image conditioned controlnet
