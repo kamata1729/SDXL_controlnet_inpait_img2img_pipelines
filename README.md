@@ -1,5 +1,5 @@
 # ControlNet Pipelines for SDXL inpaint/img2img models
-This repository provides the implementation of `StableDiffusionXLControlNetInpaintPipeline` and `StableDiffusionXLControlNetImg2ImgPipeline`. These pipelines are not officially implemented in [diffusers](https://github.com/huggingface/diffusers) yet, enabling more accurate image generation/editing processes. 
+This repository provides the implementation of `StableDiffusionXLControlNetInpaintPipeline` and `StableDiffusionXLControlNetImg2ImgPipeline`. These pipelines are not officially implemented in [diffusers](https://github.com/huggingface/diffusers) yet, but enable more accurate image generation/editing processes. 
 ## StableDiffusionXLControlNetInpaintPipeline
 **SDXL + Inpainting + ControlNet pipeline**
 
