@@ -57,13 +57,10 @@ mask_url = "https://raw.githubusercontent.com/CompVis/latent-diffusion/main/data
 
 init_image = load_image(img_url).convert("RGB")
 mask_image = load_image(mask_url).convert("RGB")
-init_image.save('init_image.png')
-mask_image.save('mask_image.png')
 
 controlnet_conditioning_scale = 0.5  # recommended for good generalization
 
 depth_image = get_depth_map(init_image)
-depth_image.save('depth_image.png')
 
 images = pipe(
     prompt, image=init_image, control_image=depth_image, mask_image=mask_image, num_inference_steps=30, controlnet_conditioning_scale=controlnet_conditioning_scale,
