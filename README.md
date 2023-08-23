@@ -14,6 +14,7 @@ python test_controlnet_inpaint_sd_xl_depth.py
 python test_controlnet_inpaint_sd_xl_canny.py
 ```
 Of course, you can also use the ControlNet provided by SDXL, such as normal map, openpose, etc.
+
 In `test_controlnet_inpaint_sd_xl_depth.py`, `StableDiffusionXLControlNetInpaintPipeline` is used as follows. 
 All you have to do is to specify `control_image` and `mask_image` as conditions.
 
