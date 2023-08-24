@@ -3,7 +3,8 @@ This repository provides the implementation of `StableDiffusionXLControlNetInpai
 ## StableDiffusionXLControlNetInpaintPipeline
 **SDXL + Inpainting + ControlNet pipeline**
 
-![inpaint_teaser](https://github.com/kamata1729/SDXL_controlnet_inpait_img2img_pipelines/assets/26928144/67d4a33b-0dbd-4c1e-9240-9c75b5ebeaea)
+![inpaint_depth drawio](https://github.com/kamata1729/SDXL_controlnet_inpait_img2img_pipelines/assets/26928144/6e2c5af3-57ef-4286-af36-de6ba060119c)
+
 
 `StableDiffusionXLControlNetInpaintPipeline` is quite simple!
 Sample codes are below:
@@ -53,3 +54,4 @@ images[0].save(f"dogstatue.png")
 
 
 ## StableDiffusionXLControlNetImg2ImgPipeline
+**SDXL + Img2Img + ControlNet pipeline**
