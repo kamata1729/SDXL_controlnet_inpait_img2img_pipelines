@@ -1,4 +1,4 @@
-from diffusers import ControlNetModel, AutoencoderKL
+from diffusers import ControlNetModel, AutoencoderKL, UniPCMultistepScheduler
 from diffusers.utils import load_image
 from PIL import Image
 import torch
@@ -7,7 +7,7 @@ import cv2
 
 from pipeline_controlnet_inpaint_sd_xl import StableDiffusionXLControlNetInpaintPipeline
 
-prompt = "a picasso painting style dog sitting on a bench"
+prompt = "pixelart on a bench"
 
 img_url = "https://raw.githubusercontent.com/CompVis/latent-diffusion/main/data/inpainting_examples/overture-creations-5sI6fQgYIuo.png"
 mask_url = "https://raw.githubusercontent.com/CompVis/latent-diffusion/main/data/inpainting_examples/overture-creations-5sI6fQgYIuo_mask.png"
@@ -28,18 +28,17 @@ pipe = StableDiffusionXLControlNetInpaintPipeline.from_pretrained(
     vae=vae,
     torch_dtype=torch.float16,
 ).to("cuda")
+pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
 pipe.enable_model_cpu_offload()
 
-control_image = np.array(init_image)
-control_image = cv2.Canny(control_image, 100, 200)
-control_image = control_image[:, :, None]
-control_image = np.concatenate([control_image, control_image, control_image], axis=2)
-control_image = Image.fromarray(control_image)
+canny_image = np.array(init_image)
+canny_image = cv2.Canny(canny_image, 100, 200)
+canny_image = canny_image[:, :, None]
+canny_image = np.concatenate([canny_image, canny_image, canny_image], axis=2)
+canny_image = Image.fromarray(canny_image)
 
 images = pipe(
-    prompt, image=init_image, control_image=control_image, mask_image=mask_image, controlnet_conditioning_scale=controlnet_conditioning_scale,
+    prompt, image=init_image, control_image=canny_image, mask_image=mask_image, controlnet_conditioning_scale=controlnet_conditioning_scale,
     ).images
 
-images[0].save(f"picasso_dog.png")
-
-
+images[0].save(f"pixelart_canny.png")

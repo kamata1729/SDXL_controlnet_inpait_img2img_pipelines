@@ -1,30 +1,30 @@
-# reference from https://huggingface.co/docs/diffusers/api/pipelines/stable_diffusion/stable_diffusion_xl
-import torch
+from diffusers import ControlNetModel, AutoencoderKL, UniPCMultistepScheduler
+from transformers import DPTFeatureExtractor, DPTForDepthEstimation
+from diffusers.utils import load_image
 import numpy as np
+import torch
+
+import cv2
 from PIL import Image
 
-from transformers import DPTFeatureExtractor, DPTForDepthEstimation
-from diffusers import ControlNetModel, AutoencoderKL, UniPCMultistepScheduler
-from diffusers.utils import load_image
+from pipeline_controlnet_img2img_sd_xl import StableDiffusionXLControlNetImg2ImgPipeline
 
-from pipeline_controlnet_inpaint_sd_xl import StableDiffusionXLControlNetInpaintPipeline
-
+# download an image
+init_image = load_image(
+    "https://hf.co/datasets/huggingface/documentation-images/resolve/main/diffusers/input_image_vermeer.png"
+).convert("RGB")
 
 depth_estimator = DPTForDepthEstimation.from_pretrained("Intel/dpt-hybrid-midas").to("cuda")
 feature_extractor = DPTFeatureExtractor.from_pretrained("Intel/dpt-hybrid-midas")
 controlnet = ControlNetModel.from_pretrained(
     "diffusers/controlnet-depth-sdxl-1.0",
-    variant="fp16",
-    use_safetensors=True,
-    torch_dtype=torch.float16,
-).to("cuda")
-vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=torch.float16).to("cuda")
-pipe = StableDiffusionXLControlNetInpaintPipeline.from_pretrained(
+    torch_dtype=torch.float16
+)
+vae = AutoencoderKL.from_pretrained("madebyollin/sdxl-vae-fp16-fix", torch_dtype=torch.float16)
+pipe = StableDiffusionXLControlNetImg2ImgPipeline.from_pretrained(
     "stabilityai/stable-diffusion-xl-base-1.0",
     controlnet=controlnet,
     vae=vae,
-    variant="fp16",
-    use_safetensors=True,
     torch_dtype=torch.float16,
 ).to("cuda")
 pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
@@ -50,20 +50,16 @@ def get_depth_map(image):
     image = Image.fromarray((image * 255.0).clip(0, 255).astype(np.uint8))
     return image
 
-
-prompt = "A dog statue on a bench"
-img_url = "https://raw.githubusercontent.com/CompVis/latent-diffusion/main/data/inpainting_examples/overture-creations-5sI6fQgYIuo.png"
-mask_url = "https://raw.githubusercontent.com/CompVis/latent-diffusion/main/data/inpainting_examples/overture-creations-5sI6fQgYIuo_mask.png"
-
-init_image = load_image(img_url).convert("RGB")
-mask_image = load_image(mask_url).convert("RGB")
-
-controlnet_conditioning_scale = 0.5  # recommended for good generalization
 depth_image = get_depth_map(init_image)
 
-images = pipe(
-    prompt, image=init_image, control_image=depth_image, mask_image=mask_image, num_inference_steps=30, controlnet_conditioning_scale=controlnet_conditioning_scale,
-).images
-images[0]
+# generate image
+generator = torch.manual_seed(0)
+image = pipe(
+    "futuristic-looking woman",
+    num_inference_steps=20,
+    generator=generator,
+    image=init_image,
+    control_image=depth_image,
+).images[0]
 
-images[0].save(f"dogstatue.png")
+image.save('futuristic-looking-woman.png')

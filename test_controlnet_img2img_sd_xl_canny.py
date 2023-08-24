@@ -21,7 +21,6 @@ np_image = np_image[:, :, None]
 np_image = np.concatenate([np_image, np_image, np_image], axis=2)
 canny_image = Image.fromarray(np_image)
 
-# load control net and stable diffusion v1-5
 controlnet = ControlNetModel.from_pretrained(
     "diffusers/controlnet-canny-sdxl-1.0",
     torch_dtype=torch.float16
@@ -33,7 +32,7 @@ pipe = StableDiffusionXLControlNetImg2ImgPipeline.from_pretrained(
     vae=vae,
     torch_dtype=torch.float16,
 ).to("cuda")
-#pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
+pipe.scheduler = UniPCMultistepScheduler.from_config(pipe.scheduler.config)
 pipe.enable_model_cpu_offload()
 
 # generate image

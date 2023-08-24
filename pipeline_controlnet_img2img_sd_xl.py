@@ -1132,7 +1132,6 @@ class StableDiffusionXLControlNetImg2ImgPipeline(DiffusionPipeline, FromSingleFi
                 do_classifier_free_guidance=do_classifier_free_guidance,
                 guess_mode=guess_mode,
             )
-            height, width = control_image.shape[-2:]
         elif isinstance(controlnet, MultiControlNetModel):
             control_images = []
 
